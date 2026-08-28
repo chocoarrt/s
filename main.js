@@ -6,6 +6,7 @@ const SUPABASE_URL = "https://sbdpzkzdfvweffgqdrum.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_fgNCu0qPh4sO_dMFHQgdyw_LR6bxiO0";
 const ADMIN_USERNAME = "luffy";
 const ADMIN_AUTH_EMAIL = "luffy@chocoart.local";
+
 const PRODUCTS = [
   { id: 1, name: "ChocoArt Rose", price: 1, color: "#c77f8d", filter: "sepia(.18) saturate(1.35) hue-rotate(305deg) brightness(1.03)", desc: "لمسة وردية ناعمة مستوحاة من الشوكولاتة." },
   { id: 2, name: "ChocoArt Marron", price: 1, color: "#79503b", filter: "sepia(.48) saturate(1.05) brightness(.88)", desc: "مارون دافئ بطابع ChocoArt." },
@@ -14,7 +15,7 @@ const PRODUCTS = [
 ];
 
 const $ = (id) => document.getElementById(id);
-const db = window.supabase && SUPABASE_URL.startsWith("http") && !SUPABASE_ANON_KEY.startsWith("YOUR_")
+const db = window.supabase && SUPABASE_URL.startsWith("http")
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } })
   : null;
 
@@ -23,9 +24,6 @@ function escapeHTML(value) {
 }
 function money(value) { return `${Number(value || 0).toFixed(0)} DT`; }
 function setStatus(id, message = "", type = "") { const el = $(id); if (!el) return; el.textContent = message; el.className = `${id.includes("admin") ? "admin-status" : "login-status form-status"} ${type}`.trim(); }
-function configured() { return Boolean(db); }
-function backendMessage() { return "ChocoArt مازال موش مربوط بالـOnline Database. لازم تحط SUPABASE_URL و SUPABASE_ANON_KEY متاع مشروعك في main.js."; }
-function requireBackend() { if (configured()) return true; alert(backendMessage()); return false; }
 
 /* ---------------- Cart ---------------- */
 function getCart() {
@@ -64,7 +62,11 @@ function renderProducts() {
 
 /* ---------------- Auth ---------------- */
 async function getUser() { if (!db) return null; const { data } = await db.auth.getUser(); return data?.user || null; }
-async function getProfile(userId) { if (!db || !userId) return null; const { data } = await db.from("profiles").select("id,name,email,role,created_at").eq("id", userId).maybeSingle(); return data || null; }
+async function getProfile(userId) { 
+  if (!db || !userId) return null; 
+  const { data } = await db.from("profiles").select("id,name,email,role,created_at").eq("id", userId).maybeSingle(); 
+  return data || null; 
+}
 async function updateAccountArea() {
   if (!$('accountArea')) return;
   const user = await getUser();
@@ -76,7 +78,6 @@ async function logoutCustomer() { if (db) await db.auth.signOut(); updateAccount
 
 async function openCheckout() {
   if (!getCart().length) return alert("السلة فارغة.");
-  if (!configured()) return alert(backendMessage());
   const user = await getUser();
   if (!user) { alert("سجّل الدخول أولاً لإتمام الطلب."); location.href = "login.html"; return; }
   const profile = await getProfile(user.id);
@@ -87,7 +88,6 @@ async function openCheckout() {
 
 async function submitOrder(e) {
   e.preventDefault();
-  if (!requireBackend()) return;
   const cart = getCart(); if (!cart.length) return;
   const user = await getUser(); if (!user) { location.href = 'login.html'; return; }
   const payload = {
@@ -148,7 +148,7 @@ function switchLoginTab(signIn) {
   $('signInForm')?.classList.toggle('hidden', !signIn); $('signUpForm')?.classList.toggle('hidden', signIn);
 }
 async function signUp(e) {
-  e.preventDefault(); if (!requireBackend()) return;
+  e.preventDefault(); 
   const name = $('signupName').value.trim(), email = $('signupEmail').value.trim().toLowerCase(), password = $('signupPassword').value;
   if (!name || !email || password.length < 6) return setStatus('loginStatus', 'تأكد من المعلومات وكلمة المرور (6 أحرف على الأقل).', 'error');
   setStatus('loginStatus', 'جاري إنشاء الحساب...');
@@ -158,14 +158,13 @@ async function signUp(e) {
   setStatus('loginStatus', 'الحساب تخلق. إذا فعّلت تأكيد الإيميل في Supabase، أكد بريدك ثم ارجع للدخول.', 'success'); switchLoginTab(true);
 }
 async function signIn(e) {
-  e.preventDefault(); if (!requireBackend()) return;
+  e.preventDefault(); 
   const identity = $('loginIdentity').value.trim(), password = $('loginPassword').value;
   const email = identity.toLowerCase() === ADMIN_USERNAME ? ADMIN_AUTH_EMAIL : identity.toLowerCase();
   setStatus('loginStatus', 'جاري الدخول...');
   const { data, error } = await db.auth.signInWithPassword({ email, password });
   if (error || !data.user) return setStatus('loginStatus', 'بيانات الدخول غير صحيحة.', 'error');
-  const profile = @getProfile(data.user.id); // Fixed syntax reference
-  // Rest of sign in logic
+  const profile = await getProfile(data.user.id);
   if (identity.toLowerCase() === ADMIN_USERNAME && profile?.role === 'admin') { location.href = 'admin.html'; return; }
   if (profile?.role === 'admin') { location.href = 'admin.html'; return; }
   location.href = 'index.html';
