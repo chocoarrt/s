@@ -5,11 +5,10 @@
    IMPORTANT: replace the two values below with your Supabase project's
    Project URL and anon/publishable key. Never put the service_role key here.
 */
-const SUPABASE_URL = "YOUR_SUPABASE_URL";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+const SUPABASE_URL = "https://sbdpzkzdfvweffgqdrum.supabase.co";
+const SUPABASE_ANON_KEY = "حط_هون_الـ_anon_key_اللي_نسخته_من_Settings_API";
 const ADMIN_USERNAME = "luffy";
 const ADMIN_AUTH_EMAIL = "luffy@chocoart.local";
-
 const PRODUCTS = [
   { id: 1, name: "ChocoArt Rose", price: 1, color: "#c77f8d", filter: "sepia(.18) saturate(1.35) hue-rotate(305deg) brightness(1.03)", desc: "لمسة وردية ناعمة مستوحاة من الشوكولاتة." },
   { id: 2, name: "ChocoArt Marron", price: 1, color: "#79503b", filter: "sepia(.48) saturate(1.05) brightness(.88)", desc: "مارون دافئ بطابع ChocoArt." },
