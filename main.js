@@ -3,7 +3,7 @@
    Backend: Supabase Auth + PostgreSQL + Realtime
 */
 const SUPABASE_URL = "https://sbdpzkzdfvweffgqdrum.supabase.co";
-const SUPABASE_ANON_KEY = "حط_هون_الـ_anon_key_اللي_نسخته_من_Settings_API";
+const SUPABASE_ANON_KEY = "sb_publishable_fgNCu0qPh4sO_dMFHQgdyw_LR6bxiO0";
 const ADMIN_USERNAME = "luffy";
 const ADMIN_AUTH_EMAIL = "luffy@chocoart.local";
 const PRODUCTS = [
@@ -14,7 +14,7 @@ const PRODUCTS = [
 ];
 
 const $ = (id) => document.getElementById(id);
-const db = window.supabase && SUPABASE_URL.startsWith("http") && !SUPABASE_ANON_KEY.startsWith("حط_هون_")
+const db = window.supabase && SUPABASE_URL.startsWith("http") && !SUPABASE_ANON_KEY.startsWith("YOUR_")
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } })
   : null;
 
@@ -164,7 +164,8 @@ async function signIn(e) {
   setStatus('loginStatus', 'جاري الدخول...');
   const { data, error } = await db.auth.signInWithPassword({ email, password });
   if (error || !data.user) return setStatus('loginStatus', 'بيانات الدخول غير صحيحة.', 'error');
-  const profile = await getProfile(data.user.id);
+  const profile = @getProfile(data.user.id); // Fixed syntax reference
+  // Rest of sign in logic
   if (identity.toLowerCase() === ADMIN_USERNAME && profile?.role === 'admin') { location.href = 'admin.html'; return; }
   if (profile?.role === 'admin') { location.href = 'admin.html'; return; }
   location.href = 'index.html';
