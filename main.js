@@ -1,9 +1,6 @@
 /* ChocoArt — online edition
    Frontend: HTML/CSS/JS
    Backend: Supabase Auth + PostgreSQL + Realtime
-
-   IMPORTANT: replace the two values below with your Supabase project's
-   Project URL and anon/publishable key. Never put the service_role key here.
 */
 const SUPABASE_URL = "https://sbdpzkzdfvweffgqdrum.supabase.co";
 const SUPABASE_ANON_KEY = "حط_هون_الـ_anon_key_اللي_نسخته_من_Settings_API";
@@ -17,7 +14,7 @@ const PRODUCTS = [
 ];
 
 const $ = (id) => document.getElementById(id);
-const db = window.supabase && SUPABASE_URL.startsWith("http") && !SUPABASE_ANON_KEY.startsWith("YOUR_")
+const db = window.supabase && SUPABASE_URL.startsWith("http") && !SUPABASE_ANON_KEY.startsWith("حط_هون_")
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } })
   : null;
 
