@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ChocoArt — متجر شوكولاتة تونسي بسيط وأنيق.">
+  <title>ChocoArt | شوكولاتة تونسية</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="navbar">
+    <a class="logo" href="index.html" aria-label="ChocoArt">Choco<span>Art</span></a>
+    <nav class="nav-links" aria-label="التنقل">
+      <a href="#home">الرئيسية</a>
+      <a href="#products">المنتجات</a>
+      <a href="#montage">المعرض</a>
+      <a href="#about">من نحن</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="social-logo instagram-logo" href="https://www.instagram.com/chocoart501/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.5" cy="6.7" r="1" class="fill"/></svg>
+      </a>
+      <a class="social-logo facebook-logo" href="https://www.facebook.com/profile.php?id=61593725014379&locale=fr_FR" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.7 21v-8h2.7l.4-3h-3.1V8.1c0-.9.3-1.5 1.6-1.5h1.7V4a21 21 0 0 0-2.4-.1c-2.4 0-4 1.5-4 4.1V10H8v3h2.6v8z"/></svg>
+      </a>
+      <button class="cart-btn" id="cartBtn" type="button" aria-label="فتح السلة">السلة <b id="cartCount">0</b></button>
+      <span id="accountArea"></span>
+    </div>
+  </header>
+
+  <main>
+    <section id="home" class="hero">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <span class="eyebrow">CHOCOART · TUNISIA</span>
+          <h1>فنّ الشوكولاتة<br><span>في كل قطعة.</span></h1>
+          <p>أربع اختيارات بطابع ChocoArt، بسعر موحّد <strong>1 DT</strong> للقطعة. اختَر، أضف للسلة، وابعث طلبك من أي مكان.</p>
+          <div class="hero-actions"><a class="btn" href="#products">اكتشف المجموعة</a><a class="text-link" href="#about">تعرف علينا ←</a></div>
+        </div>
+        <div class="hero-note" aria-hidden="true"><span>01</span><strong>HAND<br>CRAFTED</strong><i></i><small>CHOCOLATE<br>STUDIO</small></div>
+      </div>
+    </section>
+
+    <section id="products" class="section">
+      <div class="section-head"><span class="eyebrow">THE COLLECTION</span><h2>اختار لونك</h2><p>نفس روح ChocoArt، بأربع لمسات مستوحاة من الشوكولاتة.</p></div>
+      <div class="products-grid" id="productsGrid"></div>
+    </section>
+
+    <section id="montage" class="section montage-section">
+      <div class="section-head"><span class="eyebrow">CHOCOLATE GALLERY</span><h2>ChocoArt</h2><p>الصورة الرسمية للمجموعة.</p></div>
+      <div class="montage-frame"><img src="montage.png" alt="مجموعة منتجات ChocoArt"></div>
+    </section>
+
+    <section id="about" class="section about">
+      <div class="about-copy"><span class="eyebrow">OUR STORY</span><h2>شوكولاتة بسيطة.<br>تفاصيل تعمل الفرق.</h2><p>ChocoArt متجر تونسي صغير بفكرة واضحة: منتج جميل، سعر واضح، وتجربة طلب سهلة من الهاتف أو الكمبيوتر.</p><div class="about-line"><span>01</span><span>Made for Tunisia</span></div></div>
+      <div class="about-card"><div class="about-seal">CA</div><strong>CHOCOLATE<br>WITH CHARACTER</strong><span>CHOCOLATE · ART · TUNISIA</span></div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-brand"><div class="logo">Choco<span>Art</span></div><small>Chocolate · Art · Tunisia</small></div>
+    <div class="footer-socials">
+      <a href="https://www.instagram.com/chocoart501/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><svg viewBox="0 0 24 24"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5"/><circle cx="12" cy="12" r="4.1"/></svg></a>
+      <a href="https://www.facebook.com/profile.php?id=61593725014379&locale=fr_FR" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M13.7 21v-8h2.7l.4-3h-3.1V8.1c0-.9.3-1.5 1.6-1.5h1.7V4a21 21 0 0 0-2.4-.1c-2.4 0-4 1.5-4 4.1V10H8v3h2.6v8z"/></svg></a>
+    </div>
+    <p>© 2026 ChocoArt</p>
+  </footer>
+
+  <div class="drawer-overlay" id="drawerOverlay"><aside class="cart-drawer" aria-label="سلة التسوق"><button class="close-btn" id="closeCart" type="button">×</button><div class="drawer-label">YOUR CART</div><h2>سلة التسوق</h2><div id="cartItems"></div><div class="cart-total"><span>المجموع</span><strong id="cartTotal">0 DT</strong></div><button class="btn full" id="checkoutBtn" type="button">إتمام الطلب</button></aside></div>
+
+  <div class="modal" id="checkoutModal"><div class="modal-card"><button class="close-btn" id="closeCheckout" type="button">×</button><div class="drawer-label">CHECKOUT</div><h2>إتمام الطلب</h2><p>كمّل معلومات التوصيل، والطلب يوصل مباشرة للوحة الإدارة.</p><form id="checkoutForm">
+    <div class="form-grid"><div><label for="orderName">الاسم الكامل</label><input id="orderName" required autocomplete="name"></div><div><label for="orderEmail">البريد الإلكتروني</label><input id="orderEmail" type="email" required autocomplete="email"></div><div><label for="orderPhone">رقم الهاتف</label><input id="orderPhone" type="tel" required autocomplete="tel" placeholder="مثال: 20 000 000"></div><div><label for="orderState">الولاية</label><select id="orderState" required><option value="">اختر الولاية</option><option>تونس</option><option>أريانة</option><option>بن عروس</option><option>منوبة</option><option>نابل</option><option>زغوان</option><option>بنزرت</option><option>باجة</option><option>جندوبة</option><option>الكاف</option><option>سليانة</option><option>سوسة</option><option>المنستير</option><option>المهدية</option><option>صفاقس</option><option>القيروان</option><option>القصرين</option><option>سيدي بوزيد</option><option>قابس</option><option>مدنين</option><option>تطاوين</option><option>قبلي</option><option>توزر</option><option>قفصة</option></select></div></div>
+    <label for="orderAddress">العنوان</label><textarea id="orderAddress" required placeholder="الحي، الشارع، رقم المنزل..."></textarea>
+    <label for="orderNotes">ملاحظات</label><textarea id="orderNotes" placeholder="اختياري"></textarea>
+    <button class="btn full" type="submit">إرسال الطلب</button><p class="form-status" id="checkoutStatus" role="status"></p>
+  </form></div></div>
+
+  <div class="modal" id="successModal"><div class="modal-card success-card"><div class="success-icon">✓</div><div class="drawer-label">ORDER RECEIVED</div><h2>وصلنا طلبك!</h2><p>شكراً لاختيارك ChocoArt. الطلب تسجّل في لوحة الإدارة.</p><button class="btn" id="successClose" type="button">متابعة التسوق</button></div></div>
+  <script src="main.js"></script>
+</body>
+</html>

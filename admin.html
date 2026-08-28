@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChocoArt | Admin</title><link rel="stylesheet" href="style.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="admin-page">
+  <header class="admin-header"><a href="index.html" class="logo">Choco<span>Art</span></a><div class="admin-nav"><span class="admin-badge">ADMIN PANEL</span><a class="admin-link" href="index.html">المتجر</a><button class="dark-btn" id="adminLogout" type="button">خروج</button></div></header>
+  <main class="admin-container"><div class="admin-title"><div><span class="eyebrow">CONTROL CENTER</span><h1>لوحة تحكم ChocoArt</h1><p>الطلبات والعملاء من قاعدة البيانات Online.</p></div><button class="outline-btn" id="refreshAll" type="button">تحديث البيانات</button></div>
+    <div class="admin-status" id="adminStatus" role="status"></div>
+    <section class="stats"><div class="stat"><span>01</span><b id="ordersStat">0</b><small>الطلبات</small></div><div class="stat"><span>02</span><b id="usersStat">0</b><small>العملاء</small></div><div class="stat"><span>03</span><b id="salesStat">0 DT</b><small>قيمة الطلبات</small></div></section>
+    <section class="admin-section"><div class="section-row"><div><span class="eyebrow">ORDERS</span><h2>الطلبات</h2></div><button class="outline-btn" id="refreshOrders" type="button">تحديث</button></div><div class="table-wrap"><table><thead><tr><th>ID</th><th>العميل</th><th>الهاتف</th><th>الولاية</th><th>العنوان</th><th>المنتجات</th><th>المجموع</th><th>الوقت</th><th>الحالة</th><th>حذف</th></tr></thead><tbody id="ordersTable"></tbody></table></div></section>
+    <section class="admin-section"><div class="section-row"><div><span class="eyebrow">CUSTOMERS</span><h2>العملاء المسجلون</h2></div><button class="outline-btn" id="refreshUsers" type="button">تحديث</button></div><div class="table-wrap"><table><thead><tr><th>#</th><th>الاسم</th><th>الإيميل</th><th>تاريخ التسجيل</th></tr></thead><tbody id="usersTable"></tbody></table></div></section>
+  </main><script src="main.js"></script>
+</body></html>

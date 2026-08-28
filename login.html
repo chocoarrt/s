@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChocoArt | الدخول</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="login-page">
+  <div class="login-scene"><div class="lamp-wire"></div><button class="lamp-fixture" id="lamp" type="button" aria-label="تشغيل اللمبة" aria-pressed="false"><span class="lamp-shade"><span class="lamp-bulb"></span></span></button><button class="rope" id="rope" type="button" aria-label="تشغيل اللمبة"><span></span></button><div class="light-pool"></div></div>
+  <div class="login-top"><a class="login-home" href="index.html">← المتجر</a><span>CHOCOLATE STUDIO · TUNISIA</span></div>
+  <div class="login-wrap" id="loginWrap"><div class="login-card">
+    <div class="login-kicker">WELCOME TO</div><a href="index.html" class="login-logo">Choco<span>Art</span></a>
+    <h1>أهلاً بيك</h1><p>شغّل اللمبة، وخلي ChocoArt تبدأ.</p>
+    <div class="tabs"><button class="active" id="signInTab" type="button">دخول</button><button id="signUpTab" type="button">حساب جديد</button></div>
+    <form id="signInForm"><label for="loginIdentity">الإيميل أو اسم المستخدم</label><input id="loginIdentity" type="text" required autocomplete="username"><label for="loginPassword">كلمة المرور</label><input id="loginPassword" type="password" required autocomplete="current-password"><button class="btn full" type="submit">دخول</button></form>
+    <form id="signUpForm" class="hidden"><label for="signupName">الاسم</label><input id="signupName" required autocomplete="name"><label for="signupEmail">البريد الإلكتروني</label><input id="signupEmail" type="email" required autocomplete="email"><label for="signupPassword">كلمة المرور</label><input id="signupPassword" type="password" minlength="6" required autocomplete="new-password"><button class="btn full" type="submit">إنشاء الحساب</button></form>
+    <p class="login-status" id="loginStatus" role="status"></p><a href="index.html" class="back-link">العودة إلى المتجر</a>
+  </div></div>
+  <script src="main.js"></script>
+</body>
+</html>
