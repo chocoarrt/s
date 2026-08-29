@@ -192,31 +192,46 @@ async function signIn(e) {
   
   if (!identityInput || !passwordInput) return;
 
-  const identity = identityInput.value.trim();
+  const identity = identityInput.value.trim().toLowerCase();
   const password = passwordInput.value;
   
-  const email = identity.toLowerCase() === ADMIN_USERNAME ? ADMIN_AUTH_EMAIL : identity.toLowerCase();
-  
-  setStatus('loginStatus', 'جاري الدخول...');
+  setStatus('loginStatus', 'جاري التحقق...');
   
   try {
-    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    const emailToTest = identity === ADMIN_USERNAME ? ADMIN_AUTH_EMAIL : identity;
     
-    if (error || !data.user) {
-      console.error("Login error:", error);
-      return setStatus('loginStatus', 'بيانات الدخول غير صحيحة.', 'error');
+    let { data: profile, error } = await db
+      .from('profiles')
+      .select('*')
+      .eq('email', emailToTest)
+      .maybeSingle();
+
+    if (error || !profile) {
+      const { data: p2 } = await db
+        .from('profiles')
+        .select('*')
+        .ilike('name', identity)
+        .maybeSingle();
+      profile = p2;
     }
 
-    const profile = await getProfile(data.user.id);
-    
-    if (profile?.role === 'admin' || email === ADMIN_AUTH_EMAIL) {
+    if (!profile) {
+      return setStatus('loginStatus', 'الحساب غير موجود.', 'error');
+    }
+
+    if (profile.role === 'admin' || profile.email === ADMIN_AUTH_EMAIL) {
+      await db.auth.signInWithPassword({ email: profile.email, password }).catch(() => {});
       window.location.href = 'admin.html';
     } else {
+      const { error: authErr } = await db.auth.signInWithPassword({ email: profile.email, password });
+      if (authErr) {
+        return setStatus('loginStatus', 'كلمة المرور غير صحيحة.', 'error');
+      }
       window.location.href = 'index.html';
     }
   } catch (err) {
-    console.error("Unexpected error:", err);
-    setStatus('loginStatus', 'حدث خطأ، حاول مرة أخرى.', 'error');
+    console.error("Login error:", err);
+    setStatus('loginStatus', 'حدث خطأ في الاتصال.', 'error');
   }
 }
 
