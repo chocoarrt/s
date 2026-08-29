@@ -90,19 +90,45 @@ async function submitOrder(e) {
   e.preventDefault();
   const cart = getCart(); if (!cart.length) return;
   const user = await getUser(); if (!user) { location.href = 'login.html'; return; }
+  
+  // توليد كود طلب عشوائي وفريد باش ما يصيرش Conflict
+  const uniqueOrderCode = 'CHOCO-' + Math.floor(100000 + Math.random() * 900000);
+
   const payload = {
     user_id: user.id,
-    customer_name: $('orderName').value.trim(), customer_email: $('orderEmail').value.trim().toLowerCase(),
-    phone: $('orderPhone').value.trim(), state: $('orderState').value, address: $('orderAddress').value.trim(), notes: $('orderNotes').value.trim(),
+    order_code: uniqueOrderCode,
+    customer_name: $('orderName').value.trim(), 
+    customer_email: $('orderEmail').value.trim().toLowerCase(),
+    phone: $('orderPhone').value.trim(), 
+    state: $('orderState') ? $('orderState').value : '', // ولات اختيارية وما تقلقش لو فارغة
+    address: $('orderAddress').value.trim(), 
+    notes: $('orderNotes').value.trim(),
     items: cart.map(x => ({ id: x.id, name: x.name, quantity: x.quantity, price: 1 })),
-    total: cart.reduce((s, x) => s + x.quantity, 0), status: 'قيد المعالجة'
+    total: cart.reduce((s, x) => s + x.quantity, 0), 
+    status: 'قيد المعالجة'
   };
-  if (!payload.customer_name || !payload.customer_email || !payload.phone || !payload.state || !payload.address) return setStatus('checkoutStatus', 'كمّل المعلومات المطلوبة.', 'error');
-  const btn = $('checkoutForm').querySelector('button[type="submit"]'); btn.disabled = true; setStatus('checkoutStatus', 'جاري إرسال الطلب...');
+
+  if (!payload.customer_name || !payload.customer_email || !payload.phone || !payload.address) {
+    return setStatus('checkoutStatus', 'كمّل المعلومات المطلوبة (الاسم، الإيميل، الهاتف، والعنوان).', 'error');
+  }
+
+  const btn = $('checkoutForm').querySelector('button[type="submit"]'); 
+  btn.disabled = true; 
+  setStatus('checkoutStatus', 'جاري إرسال الطلب...');
+
   const { error } = await db.from('orders').insert(payload);
   btn.disabled = false;
-  if (error) { console.error(error); return setStatus('checkoutStatus', 'صار مشكل في إرسال الطلب. تأكد من إعداد Supabase.', 'error'); }
-  localStorage.removeItem('chocoCart'); $('checkoutForm').reset(); $('checkoutModal').classList.remove('active'); $('successModal').classList.add('active'); updateCartUI();
+
+  if (error) { 
+    console.error(error); 
+    return setStatus('checkoutStatus', 'صار مشكل في إرسال الطلب: ' + (error.message || ''), 'error'); 
+  }
+
+  localStorage.removeItem('chocoCart'); 
+  $('checkoutForm').reset(); 
+  $('checkoutModal').classList.remove('active'); 
+  $('successModal').classList.add('active'); 
+  updateCartUI();
 }
 
 async function setupStore() {
@@ -192,7 +218,7 @@ async function loadOrders() {
   const { data, error } = await db.from('orders').select('*').order('created_at', { ascending: false });
   if (error) { console.error(error); setStatus('adminStatus', 'تعذر تحميل الطلبات. راجع RLS وSupabase.', 'error'); return; }
   $('ordersStat').textContent = data.length; $('salesStat').textContent = money(data.reduce((s, x) => s + Number(x.total || 0), 0));
-  $('ordersTable').innerHTML = data.length ? data.map(o => `<tr><td><strong>${escapeHTML(o.order_code)}</strong></td><td><strong>${escapeHTML(o.customer_name)}</strong><br><small>${escapeHTML(o.customer_email)}</small></td><td>${escapeHTML(o.phone)}</td><td>${escapeHTML(o.state)}</td><td class="address-cell">${escapeHTML(o.address)}${o.notes ? `<br><small>ملاحظة: ${escapeHTML(o.notes)}</small>` : ''}</td><td>${itemsText(o.items)}</td><td>${money(o.total)}</td><td>${new Date(o.created_at).toLocaleString('ar-TN')}</td><td><select onchange="changeOrderStatus('${o.id}',this.value)"><option value="قيد المعالجة" ${o.status==='قيد المعالجة'?'selected':''}>قيد المعالجة</option><option value="تم التوصيل" ${o.status==='تم التوصيل'?'selected':''}>تم التوصيل</option></select></td><td><button class="delete-btn" type="button" onclick="deleteOrder('${o.id}')">حذف</button></td></tr>`).join('') : '<tr><td colspan="10">لا توجد طلبات حالياً.</td></tr>';
+  $('ordersTable').innerHTML = data.length ? data.map(o => `<tr><td><strong>${escapeHTML(o.order_code)}</strong></td><td><strong>${escapeHTML(o.customer_name)}</strong><br><small>${escapeHTML(o.customer_email)}</small></td><td>${escapeHTML(o.phone)}</td><td>${escapeHTML(o.state || '-')}</td><td class="address-cell">${escapeHTML(o.address)}${o.notes ? `<br><small>ملاحظة: ${escapeHTML(o.notes)}</small>` : ''}</td><td>${itemsText(o.items)}</td><td>${money(o.total)}</td><td>${new Date(o.created_at).toLocaleString('ar-TN')}</td><td><select onchange="changeOrderStatus('${o.id}',this.value)"><option value="قيد المعالجة" ${o.status==='قيد المعالجة'?'selected':''}>قيد المعالجة</option><option value="تم التوصيل" ${o.status==='تم التوصيل'?'selected':''}>تم التوصيل</option></select></td><td><button class="delete-btn" type="button" onclick="deleteOrder('${o.id}')">حذف</button></td></tr>`).join('') : '<tr><td colspan="10">لا توجد طلبات حالياً.</td></tr>';
 }
 async function loadUsers() {
   if (!db || !$('usersTable')) return;
