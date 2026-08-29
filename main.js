@@ -91,7 +91,6 @@ async function submitOrder(e) {
   const cart = getCart(); if (!cart.length) return;
   const user = await getUser(); if (!user) { location.href = 'login.html'; return; }
   
-  // توليد كود طلب عشوائي وفريد باش ما يصيرش Conflict
   const uniqueOrderCode = 'CHOCO-' + Math.floor(100000 + Math.random() * 900000);
 
   const payload = {
@@ -100,7 +99,7 @@ async function submitOrder(e) {
     customer_name: $('orderName').value.trim(), 
     customer_email: $('orderEmail').value.trim().toLowerCase(),
     phone: $('orderPhone').value.trim(), 
-    state: $('orderState') ? $('orderState').value : '', // ولات اختيارية وما تقلقش لو فارغة
+    state: $('orderState') ? $('orderState').value : '', 
     address: $('orderAddress').value.trim(), 
     notes: $('orderNotes').value.trim(),
     items: cart.map(x => ({ id: x.id, name: x.name, quantity: x.quantity, price: 1 })),
@@ -169,10 +168,11 @@ function setupLampControls() {
   lamp?.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') activate(e); });
 }
 
-function switchLoginTab(signIn) {
-  $('signInTab')?.classList.toggle('active', signIn); $('signUpTab')?.classList.toggle('active', !signIn);
-  $('signInForm')?.classList.toggle('hidden', !signIn); $('signUpForm')?.classList.toggle('hidden', signIn);
+function switchLoginTab(signInTabActive) {
+  $('signInTab')?.classList.toggle('active', signInTabActive); $('signUpTab')?.classList.toggle('active', !signInTabActive);
+  $('signInForm')?.classList.toggle('hidden', !signInTabActive); $('signUpForm')?.classList.toggle('hidden', signInTabActive);
 }
+
 async function signUp(e) {
   e.preventDefault(); 
   const name = $('signupName').value.trim(), email = $('signupEmail').value.trim().toLowerCase(), password = $('signupPassword').value;
@@ -181,25 +181,52 @@ async function signUp(e) {
   const { data, error } = await db.auth.signUp({ email, password, options: { data: { name } } });
   if (error) return setStatus('loginStatus', error.message, 'error');
   if (data.session) { location.href = 'index.html'; return; }
-  setStatus('loginStatus', 'الحساب تخلق. إذا فعّلت تأكيد الإيميل في Supabase، أكد بريدك ثم ارجع للدخول.', 'success'); switchLoginTab(true);
+  setStatus('loginStatus', 'الحساب تخلق بنجاح.', 'success'); switchLoginTab(true);
 }
+
 async function signIn(e) {
-  e.preventDefault(); 
-  const identity = $('loginIdentity').value.trim(), password = $('loginPassword').value;
+  if (e) e.preventDefault(); 
+  
+  const identityInput = $('loginIdentity');
+  const passwordInput = $('loginPassword');
+  
+  if (!identityInput || !passwordInput) return;
+
+  const identity = identityInput.value.trim();
+  const password = passwordInput.value;
+  
   const email = identity.toLowerCase() === ADMIN_USERNAME ? ADMIN_AUTH_EMAIL : identity.toLowerCase();
+  
   setStatus('loginStatus', 'جاري الدخول...');
-  const { data, error } = await db.auth.signInWithPassword({ email, password });
-  if (error || !data.user) return setStatus('loginStatus', 'بيانات الدخول غير صحيحة.', 'error');
-  const profile = await getProfile(data.user.id);
-  if (identity.toLowerCase() === ADMIN_USERNAME && profile?.role === 'admin') { location.href = 'admin.html'; return; }
-  if (profile?.role === 'admin') { location.href = 'admin.html'; return; }
-  location.href = 'index.html';
+  
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    
+    if (error || !data.user) {
+      console.error("Login error:", error);
+      return setStatus('loginStatus', 'بيانات الدخول غير صحيحة.', 'error');
+    }
+
+    const profile = await getProfile(data.user.id);
+    
+    if (profile?.role === 'admin' || email === ADMIN_AUTH_EMAIL) {
+      window.location.href = 'admin.html';
+    } else {
+      window.location.href = 'index.html';
+    }
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    setStatus('loginStatus', 'حدث خطأ، حاول مرة أخرى.', 'error');
+  }
 }
+
 async function setupLogin() {
   if (!$('loginWrap')) return;
   updateLamp(); setupLampControls();
-  $('signInTab')?.addEventListener('click', () => switchLoginTab(true)); $('signUpTab')?.addEventListener('click', () => switchLoginTab(false));
-  $('signUpForm')?.addEventListener('submit', signUp); $('signInForm')?.addEventListener('submit', signIn);
+  $('signInTab')?.addEventListener('click', () => switchLoginTab(true)); 
+  $('signUpTab')?.addEventListener('click', () => switchLoginTab(false));
+  $('signUpForm')?.addEventListener('submit', signUp); 
+  $('signInForm')?.addEventListener('submit', signIn);
   if (db) { const user = await getUser(); if (user) setStatus('loginStatus', 'أنت داخل بالحساب بالفعل.'); }
 }
 
@@ -213,13 +240,15 @@ async function ensureAdmin() {
   return true;
 }
 function itemsText(items) { return (items || []).map(x => `${escapeHTML(x.name)} × ${Number(x.quantity)}`).join('<br>'); }
+
 async function loadOrders() {
   if (!db || !$('ordersTable')) return;
   const { data, error } = await db.from('orders').select('*').order('created_at', { ascending: false });
-  if (error) { console.error(error); setStatus('adminStatus', 'تعذر تحميل الطلبات. راجع RLS وSupabase.', 'error'); return; }
+  if (error) { console.error(error); setStatus('adminStatus', 'تعذر تحميل الطلبات.', 'error'); return; }
   $('ordersStat').textContent = data.length; $('salesStat').textContent = money(data.reduce((s, x) => s + Number(x.total || 0), 0));
   $('ordersTable').innerHTML = data.length ? data.map(o => `<tr><td><strong>${escapeHTML(o.order_code)}</strong></td><td><strong>${escapeHTML(o.customer_name)}</strong><br><small>${escapeHTML(o.customer_email)}</small></td><td>${escapeHTML(o.phone)}</td><td>${escapeHTML(o.state || '-')}</td><td class="address-cell">${escapeHTML(o.address)}${o.notes ? `<br><small>ملاحظة: ${escapeHTML(o.notes)}</small>` : ''}</td><td>${itemsText(o.items)}</td><td>${money(o.total)}</td><td>${new Date(o.created_at).toLocaleString('ar-TN')}</td><td><select onchange="changeOrderStatus('${o.id}',this.value)"><option value="قيد المعالجة" ${o.status==='قيد المعالجة'?'selected':''}>قيد المعالجة</option><option value="تم التوصيل" ${o.status==='تم التوصيل'?'selected':''}>تم التوصيل</option></select></td><td><button class="delete-btn" type="button" onclick="deleteOrder('${o.id}')">حذف</button></td></tr>`).join('') : '<tr><td colspan="10">لا توجد طلبات حالياً.</td></tr>';
 }
+
 async function loadUsers() {
   if (!db || !$('usersTable')) return;
   const { data, error } = await db.from('profiles').select('id,name,email,created_at').eq('role','customer').order('created_at',{ascending:false});
@@ -227,87 +256,24 @@ async function loadUsers() {
   $('usersStat').textContent = data.length;
   $('usersTable').innerHTML = data.length ? data.map((u,i)=>`<tr><td>${i+1}</td><td>${escapeHTML(u.name)}</td><td>${escapeHTML(u.email)}</td><td>${new Date(u.created_at).toLocaleString('ar-TN')}</td></tr>`).join('') : '<tr><td colspan="4">لا يوجد عملاء مسجلون.</td></tr>';
 }
+
 async function changeOrderStatus(id, status) { if (!db) return; const { error } = await db.from('orders').update({ status }).eq('id', id); if (error) alert('ما نجمتش نبدل الحالة.'); else loadOrders(); }
 async function deleteOrder(id) { if (!confirm('هل تريد حذف هذا الطلب نهائياً؟')) return; const { error } = await db.from('orders').delete().eq('id', id); if (error) alert('ما نجمتش نحذف الطلب.'); else loadOrders(); }
+
 async function setupAdmin() {
   if (!$('ordersTable')) return; if (!(await ensureAdmin())) return;
   await Promise.all([loadOrders(), loadUsers()]);
-  $('refreshOrders')?.addEventListener('click', loadOrders); $('refreshUsers')?.addEventListener('click', loadUsers); $('refreshAll')?.addEventListener('click', async()=>{await Promise.all([loadOrders(),loadUsers()]);setStatus('adminStatus','تم تحديث البيانات.','success');});
+  $('refreshOrders')?.addEventListener('click', loadOrders); 
+  $('refreshUsers')?.addEventListener('click', loadUsers); 
+  $('refreshAll')?.addEventListener('click', async()=>{await Promise.all([loadOrders(),loadUsers()]);setStatus('adminStatus','تم تحديث البيانات.','success');});
   $('adminLogout')?.addEventListener('click', async()=>{await db.auth.signOut(); location.href='login.html';});
   adminChannel = db.channel('chocoart-orders').on('postgres_changes',{event:'*',schema:'public',table:'orders'},()=>loadOrders()).subscribe();
   db.channel('chocoart-users').on('postgres_changes',{event:'*',schema:'public',table:'profiles'},()=>loadUsers()).subscribe();
   setInterval(()=>{loadOrders();loadUsers();},15000);
 }
 
-document.addEventListener('DOMContentLoaded', () => { setupStore(); setupLogin(); setupAdmin(); });async function signIn(e) {
-  e.preventDefault(); 
-  const identity = $('loginIdentity').value.trim();
-  const password = $('loginPassword').value;
-  
-  // إذا كتبت luffy وحده، نحولوه مباشرة للإيميل الرسمي للأدمن
-  const email = identity.toLowerCase() === 'luffy' ? 'luffy@chocoart.local' : identity.toLowerCase();
-  
-  setStatus('loginStatus', 'جاري الدخول...');
-  
-  const { data, error } = await db.auth.signInWithPassword({ email, password });
-  
-  if (error || !data.user) {
-    console.error("Login error:", error);
-    return setStatus('loginStatus', 'بيانات الدخول غير صحيحة.', 'error');
-  }
-
-  const profile = await getProfile(data.user.id);
-  
-  if (profile?.role === 'admin' || email === 'luffy@chocoart.local') {
-    location.href = 'admin.html';
-  } else {
-    location.href = 'index.html';
-  }
-}
-async function signIn(e) {
-  if (e) e.preventDefault(); 
-  
-  const identityInput = document.getElementById('loginIdentity');
-  const passwordInput = document.getElementById('loginPassword');
-  const statusEl = document.getElementById('loginStatus');
-  
-  if (!identityInput || !passwordInput) {
-    console.error("Login inputs not found!");
-    return;
-  }
-
-  const identity = identityInput.value.trim();
-  const password = passwordInput.value;
-  
-  // تحويل "luffy" مباشرة للإيميل الرسمي لتفادي أي خطأ
-  const email = identity.toLowerCase() === 'luffy' ? 'luffy@chocoart.local' : identity.toLowerCase();
-  
-  if (statusEl) statusEl.innerText = 'جاري تسجيل الدخول...';
-  
-  try {
-    const { data, error } = await db.auth.signInWithPassword({ email, password });
-    
-    if (error || !data.user) {
-      console.error("Supabase Login Error:", error);
-      if (statusEl) statusEl.innerText = 'بيانات الدخول غير صحيحة.';
-      return;
-    }
-
-    // جلب بيانات البروفيل للتأكد من الرتبة
-    const { data: profile } = await db
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .single();
-    
-    // التوجيه حسب الصلاحية
-    if (profile?.role === 'admin' || email === 'luffy@chocoart.local') {
-      window.location.href = 'admin.html';
-    } else {
-      window.location.href = 'index.html';
-    }
-  } catch (err) {
-    console.error("Unexpected error:", err);
-    if (statusEl) statusEl.innerText = 'حدث خطأ، حاول مرة أخرى.';
-  }
-}
+document.addEventListener('DOMContentLoaded', () => { 
+  setupStore(); 
+  setupLogin(); 
+  setupAdmin(); 
+});
