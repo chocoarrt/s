@@ -264,3 +264,50 @@ document.addEventListener('DOMContentLoaded', () => { setupStore(); setupLogin()
     location.href = 'index.html';
   }
 }
+async function signIn(e) {
+  if (e) e.preventDefault(); 
+  
+  const identityInput = document.getElementById('loginIdentity');
+  const passwordInput = document.getElementById('loginPassword');
+  const statusEl = document.getElementById('loginStatus');
+  
+  if (!identityInput || !passwordInput) {
+    console.error("Login inputs not found!");
+    return;
+  }
+
+  const identity = identityInput.value.trim();
+  const password = passwordInput.value;
+  
+  // تحويل "luffy" مباشرة للإيميل الرسمي لتفادي أي خطأ
+  const email = identity.toLowerCase() === 'luffy' ? 'luffy@chocoart.local' : identity.toLowerCase();
+  
+  if (statusEl) statusEl.innerText = 'جاري تسجيل الدخول...';
+  
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    
+    if (error || !data.user) {
+      console.error("Supabase Login Error:", error);
+      if (statusEl) statusEl.innerText = 'بيانات الدخول غير صحيحة.';
+      return;
+    }
+
+    // جلب بيانات البروفيل للتأكد من الرتبة
+    const { data: profile } = await db
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single();
+    
+    // التوجيه حسب الصلاحية
+    if (profile?.role === 'admin' || email === 'luffy@chocoart.local') {
+      window.location.href = 'admin.html';
+    } else {
+      window.location.href = 'index.html';
+    }
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    if (statusEl) statusEl.innerText = 'حدث خطأ، حاول مرة أخرى.';
+  }
+}
