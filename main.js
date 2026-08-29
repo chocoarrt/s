@@ -239,4 +239,28 @@ async function setupAdmin() {
   setInterval(()=>{loadOrders();loadUsers();},15000);
 }
 
-document.addEventListener('DOMContentLoaded', () => { setupStore(); setupLogin(); setupAdmin(); });
+document.addEventListener('DOMContentLoaded', () => { setupStore(); setupLogin(); setupAdmin(); });async function signIn(e) {
+  e.preventDefault(); 
+  const identity = $('loginIdentity').value.trim();
+  const password = $('loginPassword').value;
+  
+  // إذا كتبت luffy وحده، نحولوه مباشرة للإيميل الرسمي للأدمن
+  const email = identity.toLowerCase() === 'luffy' ? 'luffy@chocoart.local' : identity.toLowerCase();
+  
+  setStatus('loginStatus', 'جاري الدخول...');
+  
+  const { data, error } = await db.auth.signInWithPassword({ email, password });
+  
+  if (error || !data.user) {
+    console.error("Login error:", error);
+    return setStatus('loginStatus', 'بيانات الدخول غير صحيحة.', 'error');
+  }
+
+  const profile = await getProfile(data.user.id);
+  
+  if (profile?.role === 'admin' || email === 'luffy@chocoart.local') {
+    location.href = 'admin.html';
+  } else {
+    location.href = 'index.html';
+  }
+}
